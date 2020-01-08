@@ -1,0 +1,11 @@
+{
+    "app": "npx ts-node cdk/index.ts",
+    "context": {
+        "AcmeServer": "acme-v02.api.letsencrypt.org",
+        "AccountEmail": "<your email here>",
+        "OutputBucketName": "<your output S3 bucket here>",
+        "Domains": [
+            "<your domains here>"
+        ]
+    }
+}
