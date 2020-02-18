@@ -67,6 +67,14 @@ export class LambdaStack extends cdk.Stack {
             ]
         }))
 
+        const certPullersGroup = new iam.Group(this, 'CertPullers', {
+            groupName: 'CertPullers'
+        });
+        certPullersGroup.addToPolicy(new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            resources: [`${outputBucket.bucketArn}/*`],
+            actions: ['s3:GetObject']
+        }));
 
         for (let domain of Domains) {
 
