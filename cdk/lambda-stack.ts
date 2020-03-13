@@ -67,15 +67,6 @@ export class LambdaStack extends cdk.Stack {
             ]
         }))
 
-        const certPullersGroup = new iam.Group(this, 'CertPullers', {
-            groupName: 'CertPullers'
-        });
-        certPullersGroup.addToPolicy(new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            resources: [`${outputBucket.bucketArn}/*`],
-            actions: ['s3:GetObject']
-        }));
-
         for (let domain of Domains) {
 
             const certRenewalLambda = new lambda.Function(this, `CertBotLambda-${domain}`, {
@@ -97,6 +88,20 @@ export class LambdaStack extends cdk.Stack {
             });
 
             rule.addTarget(new targets.LambdaFunction(certRenewalLambda));
+
+            const certAccessPolicy = new iam.ManagedPolicy(this, `CertAccessPolicy-${domain}`, {
+                managedPolicyName: `CertificateAccessPolicy-${domain}`
+            });
+            certAccessPolicy.addStatements(new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                resources: [`${outputBucket.bucketArn}`],
+                actions: ['s3:ListBucket']
+            }));
+            certAccessPolicy.addStatements(new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                resources: [`${outputBucket.bucketArn}/${domain}/*`],
+                actions: ['s3:GetObject']
+            }));
         }
     }
 }
