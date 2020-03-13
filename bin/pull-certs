@@ -1,0 +1,60 @@
+#!/bin/sh
+# fetches certificates for a single domain to a local path
+#   $1: Certificate bucket
+#   $2: FQDN of the domain to fetch
+#   $3: Local root path where to put the certs
+
+fail() { 
+    echo "$1" > /dev/stderr
+    exit 1 
+}
+
+s3get() {
+
+    #params
+    bucket=${1}
+    key=${2}
+    output=${3}
+
+    #compute signature
+    content_type="text/html; charset=UTF-8" 
+    date="`date -u +'%a, %d %b %Y %H:%M:%S GMT'`"
+    resource="/${bucket}/${key}"
+    request="GET\n\n${content_type}\n\nx-amz-date:${date}\n${resource}"
+    signature=`printf "${request}" | openssl sha1 -hmac "${AWS_SECRET_ACCESS_KEY}" -binary | openssl base64` 
+
+    echo "Downloading s3:/${resource} to ${output}"
+
+    #get!
+    curl -sfL \
+        -H "x-amz-date: ${date}" \
+        -H "Content-Type: ${content_type}" \
+        -H "Authorization: AWS ${AWS_ACCESS_KEY_ID}:${signature}" \
+        "https://s3-${AWS_DEFAULT_REGION}.amazonaws.com${resource}" \
+        -o "${output}"
+}
+
+# dependency check
+if ! hash openssl 2>/dev/null; then fail "openssl not installed"; fi
+if ! hash curl 2>/dev/null; then fail "curl not installed"; fi
+
+# vars
+BUCKET=${1}
+DOMAIN=${2}
+CERTROOT=${3:-"/etc/ssl/acme"}
+
+# check credentials
+AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"us-west-2"}
+if [ -z "$AWS_ACCESS_KEY_ID" ]; then fail "missing AWS_ACCESS_KEY_ID (env var)"; fi;
+if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then fail "missing AWS_SECRET_ACCESS_KEY (env var)"; fi;
+
+# validate
+if [ -z "$BUCKET" ]; then fail "missing bucket (arg 1)"; fi
+if [ -z "$DOMAIN" ]; then fail "missing key (arg 1)"; fi
+
+# fetch certs
+mkdir -p "${CERTROOT}/${DOMAIN}"
+s3get "${BUCKET}" "${DOMAIN}/${DOMAIN}.ca.crt" "${CERTROOT}/${DOMAIN}/ca.pem"
+s3get "${BUCKET}" "${DOMAIN}/${DOMAIN}.crt" "${CERTROOT}/${DOMAIN}/cert.pem"
+s3get "${BUCKET}" "${DOMAIN}/${DOMAIN}.key" "${CERTROOT}/${DOMAIN}/key.pem"
+echo "Successfully pulled certificates for ${DOMAIN}"
