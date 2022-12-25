@@ -1,6 +1,6 @@
 {
     "include": [
-        "cdk/**"
+        "cdk"
     ],
     "compilerOptions": {
         "target":"ES2018",
