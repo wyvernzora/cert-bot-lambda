@@ -24,17 +24,17 @@ func NewUploader(sess *session.Session, bucket string) *Uploader {
 }
 
 func (uploader *Uploader) UploadCertificate(domain string, certs *certificate.Resource) error {
-	certPath := fmt.Sprintf("%s/fullchain.pem", domain, domain)
+	certPath := fmt.Sprintf("%s/fullchain.pem", domain)
 	if err := uploader.uploadObject(certPath, certs.Certificate); err != nil {
 		return err
 	}
 
-	keyPath := fmt.Sprintf("%s/privkey.pem", domain, domain)
+	keyPath := fmt.Sprintf("%s/privkey.pem", domain)
 	if err := uploader.uploadObject(keyPath, certs.PrivateKey); err != nil {
 		return err
 	}
 
-	caPath := fmt.Sprintf("%s/chain.pem", domain, domain)
+	caPath := fmt.Sprintf("%s/chain.pem", domain)
 	if err := uploader.uploadObject(caPath, certs.IssuerCertificate); err != nil {
 		return err
 	}
