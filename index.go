@@ -42,7 +42,7 @@ func requestCertificate() {
 
 	config := lego.NewConfig(account)
 	config.CADirURL = fmt.Sprintf("https://%s/directory", server)
-	config.Certificate.KeyType = certcrypto.RSA2048
+	config.Certificate.KeyType = certcrypto.EC384
 
 	client, err := lego.NewClient(config)
 	if err != nil {
