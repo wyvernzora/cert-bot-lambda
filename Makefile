@@ -11,8 +11,7 @@ cert-bot.zip: cert-bot
 	build-lambda-zip cert-bot
 
 cert-bot: *.go
-	export GOOS=linux
-	go build
+	GOOS=linux go build -o cert-bot
 
 clean:
 	rm -rf cert-bot cert-bot.zip
