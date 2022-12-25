@@ -84,7 +84,7 @@ export class LambdaStack extends cdk.Stack {
             });
     
             const rule = new events.Rule(this, `CertBotLambdaScheduler-${domain}`, {
-                schedule: events.Schedule.expression("rate(7 days)")
+                schedule: events.Schedule.expression("rate(1 day)")
             });
 
             rule.addTarget(new targets.LambdaFunction(certRenewalLambda));
